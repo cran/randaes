@@ -74,13 +74,14 @@ static void fortuna_generate(int *result){
        error("RAES not initialized");
    reseed_counter[0]++;
    aes_encrypt(ctx, (uint8 *) counter, (uint8 *) result);
-   if (reseed_counter[0] > 65536) {
+   if (reseed_counter[0] > 65535) {
 	   /* Rekey after 2^20 bytes of output */
+       INC_COUNTER;
        aes_encrypt(ctx, (uint8 *) counter, (uint8 *) newkey);
        INC_COUNTER;
        aes_encrypt(ctx, (uint8 *) counter, (uint8 *) (newkey+4));
-       aes_set_key(ctx, (uint8 *) key, 256);
        memcpy(key,newkey,32);
+       aes_set_key(ctx, (uint8 *) key, 256);
        reseed_counter[0]=0;
    }
    
@@ -132,9 +133,6 @@ void fortuna_ints(int *n, int result[]){
 }
 
 
-#undef RANDOMSEED 
-
-#ifdef RANDOMSEED
 int *user_unif_nseed(void){
   return ((int *)(&seedlength));
 }
@@ -154,4 +152,5 @@ void user_PutRNGState(void){
   buffer=reseed_counter+1;
   aes_set_key(ctx, (uint8 *) key, 256);
 }
-#endif
+
+
